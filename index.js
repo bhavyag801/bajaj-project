@@ -7,18 +7,10 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Static user details
-const FULL_NAME = "john_doe";
+const FULL_NAME = "john_doe"; // use lowercase
 const DOB = "17091999";
 const EMAIL = "john@xyz.com";
 const ROLL_NUMBER = "ABCD123";
-
-// Helper: alternating caps
-function toAlternatingCaps(str) {
-  return str
-    .split("")
-    .map((ch, i) => (i % 2 === 0 ? ch.toUpperCase() : ch.toLowerCase()))
-    .join("");
-}
 
 // POST /bfhl
 app.post("/bfhl", (req, res) => {
@@ -37,22 +29,33 @@ app.post("/bfhl", (req, res) => {
     let alphabets = [];
     let specialChars = [];
     let sum = 0;
+    let allLetters = []; // keep original characters for concat_string
 
     inputArray.forEach((item) => {
       if (!isNaN(item)) {
+        // Numeric
         let num = parseInt(item, 10);
         sum += num;
-        if (num % 2 === 0) evenNumbers.push(item.toString());
-        else oddNumbers.push(item.toString());
+        if (num % 2 === 0) {
+          evenNumbers.push(item.toString());
+        } else {
+          oddNumbers.push(item.toString());
+        }
       } else if (/^[a-zA-Z]+$/.test(item)) {
+        // Alphabets
         alphabets.push(item.toUpperCase());
+        allLetters.push(...item.split("")); // store raw letters
       } else {
+        // Special chars
         specialChars.push(item);
       }
     });
 
-    // Concatenation string: reverse + alternating caps
-    let concatString = toAlternatingCaps(alphabets.join("").split("").reverse().join(""));
+    // Build alternating caps string from reversed raw letters
+    let concatString = allLetters
+      .reverse()
+      .map((ch, i) => (i % 2 === 0 ? ch.toUpperCase() : ch.toLowerCase()))
+      .join("");
 
     res.status(200).json({
       is_success: true,
@@ -74,7 +77,7 @@ app.post("/bfhl", (req, res) => {
   }
 });
 
-// Test route
+// Root test route
 app.get("/", (req, res) => res.send("BFHL API running"));
 
 const PORT = process.env.PORT || 3000;
